@@ -8,6 +8,8 @@ ThisBuild / libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.2.3"
 
 ThisBuild / libraryDependencies += "org.apache.spark" %% "spark-streaming" % "2.2.3"
 
+ThisBuild / libraryDependencies += "org.roaringbitmap" % "RoaringBitmap" % "0.8.11"
+
 lazy val root = (project in file("."))
   .settings(
     name := "BDEProject"
