@@ -37,7 +37,7 @@ object WordCount {
 
     //arbitrary RDD that needs to provide an outline of what the state of data
     //will look like in order to initiate the mapWithState operation
-    val initialRDD = ssc.sparkContext.parallelize(List(("hello", 1), ("world", 1)))
+    val initialRDD = ssc.sparkContext.parallelize(List(("hello", 0), ("world", 0)))
 
     val mappingFunc = (word: String, one: Option[Int], state: State[Int]) => {
       val sum = one.getOrElse(0) + state.getOption.getOrElse(0)
