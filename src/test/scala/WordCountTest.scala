@@ -71,7 +71,4 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     val output = ssc.sparkContext.parallelize(Seq(("hello", 1), ("world", 1), ("foo", 1), ("bar", 1), ("baz", 1), ("qux", 1)))
     assert(output.count() === 6)
   }
-
-
-
 }

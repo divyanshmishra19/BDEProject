@@ -18,7 +18,7 @@ object WordCount {
     logger.setLevel(Level.ERROR)
 
     //comment this out if not on windows
-    //System.setProperty("hadoop.home.dir", "C:\\hadoop")
+    System.setProperty("hadoop.home.dir", "C:\\hadoop")
 
     val sparkConf = new SparkConf().setAppName("SpectraWordCount")
       .setMaster("local[*]")
