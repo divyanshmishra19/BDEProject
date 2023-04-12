@@ -10,6 +10,8 @@ ThisBuild / libraryDependencies += "org.apache.spark" %% "spark-streaming" % "2.
 
 ThisBuild / libraryDependencies += "org.roaringbitmap" % "RoaringBitmap" % "0.8.11"
 
+ThisBuild /  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % Test
+
 lazy val root = (project in file("."))
   .settings(
     name := "BDEProject"
