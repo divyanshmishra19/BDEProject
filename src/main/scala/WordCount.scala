@@ -37,8 +37,12 @@ object WordCount {
     val lines = ProvenanceReceiverInputDStream(ssc.socketTextStream("localhost", 9999), "Source: SocketTextStream")
     val words = splitOperation(lines)
 
-    val mapOperation = MapOperation[String, (String, Int)]("x => (x, 1)", x => (x, 1))
+    // list.map(x => if (x % 2 == 0) x * 2 else x / 2)
+
+    val mapOperation = MapOperation[String, (String, Int)]("x => if(x.substring(0,1).equalsIgnoreCase(\"s\")) (x, 1000) else (x, 1)", x => if(x.substring(0,1).equalsIgnoreCase("s")) (x, 1000) else (x, 1))
     val wordDstream = mapOperation(words)
+
+
 
     val updateFunc = (values: Seq[Int], state: Option[Int]) => {
       val currentCount = values.foldLeft(0)(_ + _)
