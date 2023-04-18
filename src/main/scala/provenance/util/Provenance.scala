@@ -6,19 +6,19 @@ import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
 import scala.reflect.ClassTag
 
 case class ProvenanceReceiverInputDStream[T](inputDStream: ReceiverInputDStream[T], provenance: String)
-case class ProvenanceDStream[T](dStream: DStream[T], provenance: String, lineNumber: Int)
+case class ProvenanceDStream[T](dStream: DStream[T], provenance: String, lineNumber: Int = WordCountOperationLineNumber.getOperationLineNumber)
 
-case class SplitOperation(provenance: String, splitFunc: String => TraversableOnce[String], lineNumber: Int = WordCountOperationLineNumber.getOperationLineNumber) {
+case class SplitOperation(provenance: String, splitFunc: String => TraversableOnce[String]) {
   def apply(input: ProvenanceReceiverInputDStream[String]): ProvenanceDStream[String] = {
     val outputDStream = input.inputDStream.flatMap(splitFunc)
-    ProvenanceDStream(outputDStream, s"${input.provenance} -> Split: '$provenance'", lineNumber)
+    ProvenanceDStream(outputDStream, s"${input.provenance} -> Split: '$provenance'")
   }
 }
 
-case class MapOperation[T, U : ClassTag](provenance: String, mapFunc: T => U, lineNumber: Int = WordCountOperationLineNumber.getOperationLineNumber) {
+case class MapOperation[T, U : ClassTag](provenance: String, mapFunc: T => U) {
   def apply(input: ProvenanceDStream[T]): ProvenanceDStream[U] = {
     val outputDStream = input.dStream.map(mapFunc)
-    ProvenanceDStream(outputDStream, s"${input.provenance} -> Map: '$provenance'", lineNumber)
+    ProvenanceDStream(outputDStream, s"${input.provenance} -> Map: '$provenance'")
   }
 }
 
