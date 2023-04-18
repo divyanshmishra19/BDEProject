@@ -9,6 +9,7 @@ import org.apache.log4j.{Level, LogManager}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import provenance.util.Provenance.logProvenance
+import provenance.util.WordCountOperationLineNumber.getOperationLineNumber
 import provenance.util.{MapOperation, ProvenanceDStream, ProvenanceReceiverInputDStream, SplitOperation}
 
 object WordCount {
@@ -37,12 +38,15 @@ object WordCount {
     val lines = ProvenanceReceiverInputDStream(ssc.socketTextStream("localhost", 9999), "Source: SocketTextStream")
     val words = splitOperation(lines)
 
-    // list.map(x => if (x % 2 == 0) x * 2 else x / 2)
+    val mapFunc = (x: String) => {
+      if(x.substring(0,1).equalsIgnoreCase("s"))
+        (x, 1000)
+      else
+        (x, 1)
+    }
 
-    val mapOperation = MapOperation[String, (String, Int)]("x => if(x.substring(0,1).equalsIgnoreCase(\"s\")) (x, 1000) else (x, 1)", x => if(x.substring(0,1).equalsIgnoreCase("s")) (x, 1000) else (x, 1))
+    val mapOperation = MapOperation[String, (String, Int)]("x => if(x.substring(0,1).equalsIgnoreCase(\"s\")) (x, 1000) else (x, 1)", mapFunc)
     val wordDstream = mapOperation(words)
-
-
 
     val updateFunc = (values: Seq[Int], state: Option[Int]) => {
       val currentCount = values.foldLeft(0)(_ + _)
@@ -53,7 +57,7 @@ object WordCount {
     }
 
     val stateDstream = wordDstream.dStream.updateStateByKey[Int](updateFunc)
-    val provenanceStateDstream = ProvenanceDStream(stateDstream, s"${wordDstream.provenance} -> UpdateStateByKey")
+    val provenanceStateDstream = ProvenanceDStream(stateDstream, s"${wordDstream.provenance} -> UpdateStateByKey", getOperationLineNumber - 1)
     provenanceStateDstream.dStream.print()
     // Log provenance information for both operations
     logProvenance(words)
