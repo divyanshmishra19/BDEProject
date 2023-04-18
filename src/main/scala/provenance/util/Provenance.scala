@@ -7,7 +7,7 @@ import objects.TaintString
 import scala.reflect.ClassTag
 
 case class ProvenanceReceiverInputDStream[T](inputDStream: ReceiverInputDStream[T], provenance: String)
-case class ProvenanceDStream[T](dStream: DStream[T], provenance: String)
+case class ProvenanceDStream[T](dStream: DStream[T], provenance: String, lineNumber: Int = WordCountOperationLineNumber.getOperationLineNumber)
 
 case class SplitOperation(provenance: String, splitFunc: String => TraversableOnce[String]) {
   def apply(input: ProvenanceReceiverInputDStream[String]): ProvenanceDStream[String] = {
@@ -24,7 +24,6 @@ case class MapOperation[T, U : ClassTag](provenance: String, mapFunc: T => U) {
 }
 
 
-
 object Provenance {
 
   import org.apache.spark.streaming.Time
@@ -36,9 +35,11 @@ object Provenance {
       val outputData = rdd.take(10).mkString(", ")
 
       println(s"Provenance: ${provenanceDStream.provenance}")
+      println(s"Line Number: ${provenanceDStream.lineNumber}")
       println(s"Timestamp: $timestamp")
       println(s"Input Data (first 10 elements): $inputData")
       println(s"Output Data (first 10 elements): $outputData")
+      println()
     }
   }
 
@@ -55,4 +56,16 @@ trait Provenance extends Serializable {
 
   def containsAll(other: Provenance): Boolean
 
+}
+object WordCountOperationLineNumber {
+  def getOperationLineNumber: Int = {
+    val number = Thread.currentThread.getStackTrace
+      .dropWhile {
+        s =>
+          s.getClassName.startsWith("provenance.util") ||
+            s.getClassName.startsWith("java.lang")
+      }(0)
+      .getLineNumber
+    number
+  }
 }
