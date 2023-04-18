@@ -9,14 +9,14 @@ package objects
  * Created by malig on 4/25/19.
  */
 
-import provenance.data.{DummyProvenance, Provenance}
+import provenance.util.{Provenance}
 
 
-case class TaintInt(override val value: Int, p : Provenance = DummyProvenance.create()) extends TaintAny(value, p) {
+case class TaintInt(override val value: Int, p : Provenance) extends TaintAny(value, p) {
 
   setProvenance(getCallSite())
   def this(value: Int) = {
-    this(value, DummyProvenance.create())
+    this(value, p)
   }
 
   /**

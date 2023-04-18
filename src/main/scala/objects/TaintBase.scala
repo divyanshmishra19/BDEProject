@@ -5,7 +5,7 @@
 
 package objects
 
-import provenance.data.Provenance
+import provenance.util.Provenance
 
 abstract class TaintBase(private var prov: Provenance) extends Serializable{
   // The provenance object may be used in other SymBase or even row-level operations, so we

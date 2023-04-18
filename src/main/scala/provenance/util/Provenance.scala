@@ -2,7 +2,8 @@ package provenance.util
 
 
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
-
+import objects.TaintInt
+import objects.TaintString
 import scala.reflect.ClassTag
 
 case class ProvenanceReceiverInputDStream[T](inputDStream: ReceiverInputDStream[T], provenance: String)
@@ -40,5 +41,18 @@ object Provenance {
       println(s"Output Data (first 10 elements): $outputData")
     }
   }
+
+}
+
+
+trait Provenance extends Serializable {
+
+  def cloneProvenance(): Provenance
+
+  /** Merges two provenance instances, returning a (potentially) new instance after merging. This
+   *  method should not be assumed to return the same instance as its caller. */
+  def merge(other: Provenance): Provenance
+
+  def containsAll(other: Provenance): Boolean
 
 }

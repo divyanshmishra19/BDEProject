@@ -5,12 +5,12 @@
 
 package objects
 
-import provenance.data.{DummyProvenance, Provenance}
+import provenance.util.{ Provenance}
 
 /**
  * Created by malig on 4/29/19.
  */
-case class TaintString(override val value: String, p: Provenance = DummyProvenance.create()) extends TaintAny(value, p) {
+case class TaintString(override val value: String, p: Provenance) extends TaintAny(value, p) {
 
   setProvenance(getCallSite())
 

@@ -5,8 +5,9 @@
 
 package objects
 
-import provenance.data.Provenance
 
+
+import provenance.util.Provenance
 abstract class TaintAny[T <: Any](val value: T, p: Provenance) extends TaintBase(p) {
   def toTaintString: TaintString = {
     TaintString(value.toString, getProvenance())
