@@ -10,7 +10,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import provenance.util.Provenance.logProvenance
 import provenance.util.WordCountOperationLineNumber.getOperationLineNumber
-import provenance.util.{MapOperation, ProvenanceDStream, ProvenanceReceiverInputDStream, SplitOperation}
+import provenance.util.{MapOperation, ProvenanceDStream, ProvenanceReceiverInputDStream, SplitOperation, UpdateStateByKeyOperation}
 
 object WordCount {
   def main(args: Array[String]): Unit = {
@@ -56,19 +56,18 @@ object WordCount {
       Some(currentCount + previousCount)
     }
 
-    val stateDstream = wordDstream.dStream.updateStateByKey[Int](updateFunc)
-    val provenanceStateDstream = ProvenanceDStream(stateDstream, s"${wordDstream.provenance} -> UpdateStateByKey", getOperationLineNumber - 1)
-    provenanceStateDstream.dStream.print()
+
+    val updateStateByKeyOperation = UpdateStateByKeyOperation[String, Int, Int]("word count update", updateFunc)
+    val stateDstream = updateStateByKeyOperation(wordDstream)
     // Log provenance information for both operations
     logProvenance(words)
     logProvenance(wordDstream)
-    logProvenance(provenanceStateDstream)
+    logProvenance(stateDstream)
 
 
     // Update the cumulative count using updateStateByKey
     // This will give a Dstream made of state (which is the cumulative count of the words)
-    //val stateDstream = wordDstream.updateStateByKey[Int](updateFunc)
-    stateDstream.print()
+    stateDstream.dStream.print()
     ssc.start()
     ssc.awaitTermination()
   }
