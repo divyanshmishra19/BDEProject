@@ -29,9 +29,11 @@ object SpectraScore {
     lineCounters.toMap
   }
   def findMostSuspiciousLine(spectraScores: Map[Int, (Int, Int)]): (Int, Double) = {
+    val totalCorrect = spectraScores.values.map(_._1).sum.toDouble
+    val totalIncorrect = spectraScores.values.map(_._2).sum.toDouble
+
     val suspiciousnessScores = spectraScores.map { case (lineNumber, (correct, incorrect)) =>
-      val total = correct + incorrect
-      val score = (incorrect.toDouble / total) / ((incorrect.toDouble / total) + (correct.toDouble / total))
+      val score = (incorrect / totalIncorrect) / ((incorrect / totalIncorrect) + (correct / totalCorrect))
       (lineNumber, score)
     }
 
