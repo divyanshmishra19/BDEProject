@@ -4,7 +4,6 @@
  * Inspired by https://stackoverflow.com/questions/24771823/spark-streaming-accumulated-word-count
  * and https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/StatefulNetworkWordCount.scala
  */
-
 import org.apache.log4j.{Level, LogManager}
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -25,6 +24,7 @@ object WordCount {
       .setMaster("local[*]")
       .set("spark.executor.memory", "512m")
       .set("spark.driver.extraJavaOptions", "-Dlog4j.configuration=none")
+      .set("spark.driver.allowMultipleContexts", "true")
 
     //connection to spark container
     //.setMaster("spark://localhost:7077")
