@@ -4,13 +4,14 @@ package provenance.util
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream, PairDStreamFunctions}
 
 import scala.reflect.ClassTag
-
+import objects.TaintString
+import objects.TaintInt
 case class ProvenanceReceiverInputDStream[T](inputDStream: ReceiverInputDStream[T], provenance: String)
 case class ProvenanceDStream[T](dStream: DStream[T], provenance: String, lineNumber: Int)
 
-case class SplitOperation(provenance: String, splitFunc: String => TraversableOnce[String]) {
-  def apply(input: ProvenanceReceiverInputDStream[String]): ProvenanceDStream[String] = {
-    val outputDStream = input.inputDStream.flatMap(splitFunc)
+case class SplitOperation(provenance: String, splitFunc: TaintString => TraversableOnce[TaintString]) {
+  def apply(input: ProvenanceReceiverInputDStream[TaintString]): ProvenanceDStream[TaintString] = {
+    val outputDStream = input.inputDStream.flatMap(splitFunc.asInstanceOf[TaintString => TraversableOnce[TaintString]])
     val lineNumber = WordCountOperationLineNumber.getOperationLineNumber
     val provenanceString = Provenance.createProvenanceString(input.provenance, "Split", provenance, lineNumber)
     ProvenanceDStream(outputDStream, provenanceString, lineNumber)
@@ -47,7 +48,7 @@ object Provenance {
   def logProvenance[T](provenanceDStream: ProvenanceDStream[T]): Unit = {
     provenanceDStream.dStream.foreachRDD { (rdd, time: Time) =>
       val timestamp = time.toString
-      val inputData = rdd.take(10).mkString(", ")
+      val inputData = TaintString(rdd.take(10).mkString(", "))
       val outputData = rdd.take(10).mkString(", ")
 
       println(s"Provenance: ${provenanceDStream.provenance}")
