@@ -23,6 +23,7 @@ object WordCount {
       .setMaster("local[*]")
       .set("spark.executor.memory", "512m")
       .set("spark.driver.extraJavaOptions", "-Dlog4j.configuration=none")
+      .set("spark.driver.allowMultipleContexts", "true")
 
     //connection to spark container
     //.setMaster("spark://localhost:7077")
