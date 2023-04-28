@@ -48,7 +48,7 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     //lines.flatMap(_.split(" ")).map(word => (word, 1)).reduceByKey(_ + _).print()
     val server = new Thread {
       override def run(): Unit = {
-        val lstnr = new ServerSocket(9999)
+        val lstnr = new ServerSocket(9998)
         val sckt = lstnr.accept()
         val out = new PrintWriter(sckt.getOutputStream(), true)
         words.foreach(data => out.write(data + "\n"))
@@ -59,9 +59,9 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     }
     server.start()
 
-    val lines = ssc.socketTextStream("localhost", 9999)
+    val lines = ssc.socketTextStream("localhost", 9998)
 
-    val socket = new ServerSocket(9998)
+    val socket = new ServerSocket(9997)
     println("Hello")
     //val printer = new PrintWriter(socket.accept().getOutputStream(), true)
 

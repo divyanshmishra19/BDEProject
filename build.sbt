@@ -14,12 +14,6 @@ ThisBuild /  libraryDependencies += "org.scalatest" %% "scalatest" % "2.11.8" % 
 
 ThisBuild / libraryDependencies += "com.holdenkarau" %% "spark-testing-base" % "2.11.8" % "test"
 
-ThisBuild / libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % "3.2.0",
-  "org.apache.spark" %% "spark-sql" % "3.2.0",
-  "org.apache.spark" %% "spark-streaming" % "3.2.0",
-  "org.scalatest" %% "scalatest" % "3.2.10" % "test"
-)
 lazy val root = (project in file("."))
   .settings(
     name := "BDEProject"
