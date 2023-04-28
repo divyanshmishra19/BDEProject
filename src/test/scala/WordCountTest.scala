@@ -16,7 +16,7 @@ class MyStreamingTests extends org.scalatest.funsuite.AnyFunSuite {
     // Counts words per batch
     val counts = data_stream
       .flatMap(line => line.split(" "))
-      .map(word => (word, 1L))
+      .map(word => (word, 1))
       .reduceByKey(_ + _)
 
     // starts stream
@@ -26,8 +26,8 @@ class MyStreamingTests extends org.scalatest.funsuite.AnyFunSuite {
     // the word count
     Thread.sleep(3000)
 
-    val expected_count = Seq(("this", 1L), ("is", 1L), ("a", 1L), ("test", 1L))
-    var actual_count = Seq[(String, Long)]()
+    val expected_count = Seq(("this", 1), ("is", 1), ("a", 1), ("test", 1))
+    var actual_count = Seq[(String, Int)]()
     counts.foreachRDD(rdd => actual_count = rdd.collect())
     assert(expected_count === actual_count)
 
