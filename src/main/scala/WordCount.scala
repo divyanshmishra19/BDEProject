@@ -10,7 +10,8 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import provenance.util.Provenance.logProvenance
 import provenance.util.WordCountOperationLineNumber.getOperationLineNumber
-import provenance.util.{MapOperation, ProvenanceDStream, ProvenanceReceiverInputDStream, SplitOperation, UpdateStateByKeyOperation}
+import provenance.util.{FilterOperation, MapOperation, ProvenanceDStream, ProvenanceReceiverInputDStream, SplitOperation, UpdateStateByKeyOperation}
+import scala.List
 
 object WordCount {
   def main(args: Array[String]): Unit = {
@@ -38,15 +39,44 @@ object WordCount {
     val lines = ProvenanceReceiverInputDStream(ssc.socketTextStream("localhost", 9999), "Source: SocketTextStream")
     val words = splitOperation(lines)
 
-    val mapFunc = (x: String) => {
-      if(x.substring(0,1).equalsIgnoreCase("s"))
-        (x, 1000)
-      else
-        (x, 1)
-    }
+//    val filterFunc1: String => (String) = {x => x.startsWith("s") }
+//    val filterFunc2: String => (String) = {x => if(!x.startsWith("s")) x}
+//    val filterOperation1 = FilterOperation[String]("words that start with s", filterFunc1)
+//    val filterOperation2 = FilterOperation[String]("words that don't start with s", filterFunc2)
+//
+//    val startsWithS = filterOperation1(words)
+//    val otherWords = filterOperation2(words)
 
-    val mapOperation = MapOperation[String, (String, Int)]("x => if(x.substring(0,1).equalsIgnoreCase(\"s\")) (x, 1000) else (x, 1)", mapFunc)
-    val wordDstream = mapOperation(words)
+    val filterFunc1= (x:String) => x.startsWith("s")
+    val filterOp1 = FilterOperation[String]("words that start with s", filterFunc1)
+
+    val filterFunc2 = (x: String) => !x.startsWith("s")
+    val filterOp2 = FilterOperation[String]("words that don't start with s", filterFunc2)
+
+    val mapFunc1 = (x: String) => (x, 1000)
+    val mapOp1 = MapOperation[String, (String, Int)]("s words to 1000", mapFunc1)
+
+    val mapFunc2 = (x:String) => (x,1)
+    val mapOp2 = MapOperation[String, (String, Int)]("all other words to 1", mapFunc2)
+
+    val wordDstream1 = mapOp1(filterOp1(words))
+    val wordDstream2 = mapOp2(filterOp2(words))
+
+
+
+    //    val mapFunc1: String => (String, Int) = { x =>
+//        (x, 1000)
+//    }
+//
+//    val mapFunc2: String => (String, Int) = { x =>
+//        (x, 1)
+//    }
+//
+//
+//    val mapOperation1 = MapOperation[String, (String, Int)]("s words to 1000", mapFunc1)
+//    val mapOperation2 = MapOperation[String, (String, Int)]("all other words to 1", mapFunc2)
+
+    // val wordDstream = mapOperation1(startsWithS) ++ mapOperation2(otherWords)
 
     val updateFunc = (values: Seq[Int], state: Option[Int]) => {
       val currentCount = values.foldLeft(0)(_ + _)
@@ -58,16 +88,24 @@ object WordCount {
 
 
     val updateStateByKeyOperation = UpdateStateByKeyOperation[String, Int, Int]("word count update", updateFunc)
-    val stateDstream = updateStateByKeyOperation(wordDstream)
+    val stateDstream1 = updateStateByKeyOperation(wordDstream1)
+    val stateDstream2 = updateStateByKeyOperation(wordDstream2)
+
     // Log provenance information for both operations
     logProvenance(words)
-    logProvenance(wordDstream)
-    logProvenance(stateDstream)
+    logProvenance(wordDstream1)
+    logProvenance(stateDstream1)
+    logProvenance(wordDstream2)
+    logProvenance(stateDstream2)
+
+
 
 
     // Update the cumulative count using updateStateByKey
     // This will give a Dstream made of state (which is the cumulative count of the words)
-    stateDstream.dStream.print()
+    stateDstream1.dStream.print()
+    stateDstream2.dStream.print()
+
     ssc.start()
     ssc.awaitTermination()
   }

@@ -26,6 +26,15 @@ case class MapOperation[T, U : ClassTag](provenance: String, mapFunc: T => U) {
   }
 }
 
+case class FilterOperation[T](provenance: String, filterFunc: T => Boolean) {
+  def apply(input: ProvenanceDStream[T]): ProvenanceDStream[T] = {
+    val outputDStream = input.dStream.filter(filterFunc)
+    val lineNumber = WordCountOperationLineNumber.getOperationLineNumber
+    val provenanceString = Provenance.createProvenanceString(input.provenance, "Filter", provenance, lineNumber)
+    ProvenanceDStream(outputDStream, provenanceString, lineNumber)
+  }
+}
+
 case class UpdateStateByKeyOperation[K: ClassTag, V: ClassTag, S: ClassTag](
                                                                              provenance: String,
                                                                              updateFunc: (Seq[V], Option[S]) => Option[S]
