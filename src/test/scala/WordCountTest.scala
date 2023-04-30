@@ -21,6 +21,10 @@ import provenance.util.ProvenanceReceiverInputDStream
 import java.io.PrintWriter
 import java.net.ServerSocket
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 
 class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
@@ -51,15 +55,33 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
 
   test("WordCount.scala") {
 
-    val arrayOfStrings: Array[String]  = Array("hello", "hi", "super", "greetings", "hello")
+    val arrayOfStrings: Array[String]  = Array("hello hi super greeting hello")
 
     val arrayOfRDDs: Array[RDD[String]] = arrayOfStrings.map(str => ssc.sparkContext.parallelize[String](Seq(str)))
     val rddQueue: mutable.Queue[RDD[String]] = mutable.Queue(arrayOfRDDs: _*)
     val inputDStream: DStream[String] = ssc.queueStream(rddQueue)
     val provenance = "Source: Array of Strings"
     val provenanceInputDStream = ProvenanceReceiverInputDStream(inputDStream, provenance)
-    print(WordCount.countWords(provenanceInputDStream).print())
+
+    val output: ArrayBuffer[Array[(String, Int)]] = ArrayBuffer()
+
+    val wordCounts = WordCount.countWords(provenanceInputDStream)
+
+    wordCounts.foreachRDD { rdd =>
+      output += rdd.collect()
+    }
+
+    Future {
+      arrayOfRDDs.foreach { rdd =>
+        rddQueue.enqueue(rdd)
+        Thread.sleep(1000)
+      }
+    }
+
     ssc.start()
-    ssc.awaitTermination()
+    ssc.awaitTerminationOrTimeout(10000)
+    val answer = output.flatten.groupBy(_._1).mapValues(_.map(_._2).sum)
+    val expected = Map("hello" -> 2, "hi" -> 1, "super" -> 1, "greetings" -> 1)
+    assert(answer == expected)
   }
 }
