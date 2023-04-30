@@ -17,7 +17,8 @@ import org.apache.spark.streaming._
 import org.apache.spark._
 import org.apache.spark.streaming.dstream._
 import provenance.util.ProvenanceReceiverInputDStream
-
+import org.scalatest.Assertions._
+import org.scalatest.funsuite.AnyFunSuite
 import java.io.PrintWriter
 import java.net.ServerSocket
 import scala.collection.mutable
@@ -50,9 +51,10 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
   }
 
 
-  test("WordCount.scala") {
+  test("S Word Error") {
 
-    val arrayOfStrings: Array[String]  = Array("hello", "hi", "super", "greetings", "hello")
+    val arrayOfStrings: Array[String]  = Array("hello hi super greetings hello")
+    //val arrayOfStrings: String = "hello hi super greetings hello"
 
     val arrayOfRDDs: Array[RDD[String]] = arrayOfStrings.map(str => ssc.sparkContext.parallelize[String](Seq(str)))
     val rddQueue: mutable.Queue[RDD[String]] = mutable.Queue(arrayOfRDDs: _*)
@@ -78,7 +80,8 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
 
     ssc.start()
     //ssc.awaitTermination()
-    val timeoutMillis = 15000L
+    //val timeoutMillis = 15000L
+    val timeoutMillis = 5000L
     val terminated = ssc.awaitTerminationOrTimeout(timeoutMillis)
     //val dStreamString = resultDStream.print()
     //print("\n" + dStreamString + "\n")
@@ -89,7 +92,7 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     print("\n" +  expectedOutput + "\n")
     print("\n" + actualOutput + "\n")
 
-    assertOutput(expectedOutput, actualOutput)
+    assert(expectedOutput.toMap == actualOutput.toMap)
 
   }
 
