@@ -39,14 +39,6 @@ object WordCount {
     val lines = ProvenanceReceiverInputDStream(ssc.socketTextStream("localhost", 9999), "Source: SocketTextStream")
     val words = splitOperation(lines)
 
-//    val filterFunc1: String => (String) = {x => x.startsWith("s") }
-//    val filterFunc2: String => (String) = {x => if(!x.startsWith("s")) x}
-//    val filterOperation1 = FilterOperation[String]("words that start with s", filterFunc1)
-//    val filterOperation2 = FilterOperation[String]("words that don't start with s", filterFunc2)
-//
-//    val startsWithS = filterOperation1(words)
-//    val otherWords = filterOperation2(words)
-
     val filterFunc1= (x:String) => x.startsWith("s")
     val filterOp1 = FilterOperation[String]("words that start with s", filterFunc1)
 
@@ -62,22 +54,6 @@ object WordCount {
     val wordDstream1 = mapOp1(filterOp1(words))
     val wordDstream2 = mapOp2(filterOp2(words))
 
-
-
-    //    val mapFunc1: String => (String, Int) = { x =>
-//        (x, 1000)
-//    }
-//
-//    val mapFunc2: String => (String, Int) = { x =>
-//        (x, 1)
-//    }
-//
-//
-//    val mapOperation1 = MapOperation[String, (String, Int)]("s words to 1000", mapFunc1)
-//    val mapOperation2 = MapOperation[String, (String, Int)]("all other words to 1", mapFunc2)
-
-    // val wordDstream = mapOperation1(startsWithS) ++ mapOperation2(otherWords)
-
     val updateFunc = (values: Seq[Int], state: Option[Int]) => {
       val currentCount = values.foldLeft(0)(_ + _)
 
@@ -92,10 +68,7 @@ object WordCount {
     val stateDstream2 = updateStateByKeyOperation(wordDstream2)
 
     // Log provenance information for both operations
-    logProvenance(words)
-    logProvenance(wordDstream1)
     logProvenance(stateDstream1)
-    logProvenance(wordDstream2)
     logProvenance(stateDstream2)
 
 
