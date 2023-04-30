@@ -7,6 +7,7 @@
  * https://docs.oracle.com/en/java/javase/16/docs/api/java.base/java/lang/Thread.html#run()
  */
 
+import org.apache.log4j.{Level, LogManager}
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.{Seconds, State, StateSpec, StreamingContext}
@@ -26,6 +27,8 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
   val interval = Seconds(5)
 
   System.setProperty("hadoop.home.dir", "C:\\hadoop")
+  val logger = LogManager.getLogger("org.apache.spark")
+  logger.setLevel(Level.ERROR)
 
   val sparkConf = new SparkConf().setAppName("SpectraWordCount")
     .setMaster("local[*]")
