@@ -80,12 +80,10 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     val timeoutMillis = 5000L
     ssc.awaitTerminationOrTimeout(timeoutMillis)
     val expectedOutput = Seq(("hello", 2), ("hi", 1), ("super", 1), ("greetings", 1))
-    print("\nExpected Size: " +  expectedOutput.size + "\n")
-    print("\nActual Size: " +  actualOutput.size + "\n")
     print("\nExpected WordCount Output" +  expectedOutput + "\n")
     print("\nActual WordCount Output" + actualOutput + "\n")
 
-    assert(expectedOutput.toMap == actualOutput.toMap)
+    assert(actualOutput.toMap == expectedOutput.toMap)
 
   }
   // Define the function to assert that the expected and actual outputs are equal
