@@ -24,21 +24,20 @@ import scala.collection.mutable
 
 
 class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
-  val interval = Seconds(5)
-
-  System.setProperty("hadoop.home.dir", "C:\\hadoop")
-  val logger = LogManager.getLogger("org.apache.spark")
-  logger.setLevel(Level.ERROR)
-
-  val sparkConf = new SparkConf().setAppName("SpectraWordCount")
-    .setMaster("local[*]")
-    .set("spark.executor.memory", "512m")
-    .set("spark.driver.allowMultipleContexts", "true")
-
-  var ssc: StreamingContext = _
-
   //source: https://www.scalatest.org/user_guide/sharing_fixtures
+  var ssc: StreamingContext = _
   override def beforeEach(): Unit = {
+    val interval = Seconds(10)
+
+    System.setProperty("hadoop.home.dir", "C:\\hadoop")
+    val logger = LogManager.getLogger("org.apache.spark")
+    logger.setLevel(Level.ERROR)
+
+    val sparkConf = new SparkConf().setAppName("SpectraWordCount")
+      .setMaster("local[*]")
+      .set("spark.executor.memory", "512m")
+      .set("spark.driver.allowMultipleContexts", "true")
+
     ssc = new StreamingContext(sparkConf, interval)
     ssc.checkpoint("checkpoint")
     super.beforeEach()
