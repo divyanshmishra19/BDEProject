@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.ClassTag
 
-case class ProvenanceReceiverInputDStream[T](inputDStream: ReceiverInputDStream[T], provenance: String)
+case class ProvenanceReceiverInputDStream[T](inputDStream: DStream[T], provenance: String)
 case class ProvenanceDStream[T](dStream: DStream[T], provenance: String, lineNumber: Int)
 
 case class SplitOperation(provenance: String, splitFunc: String => TraversableOnce[String]) {
@@ -61,12 +61,12 @@ object Provenance {
       val timestamp = time.toString
       val inputData = rdd.take(10).mkString(", ")
       val outputData = rdd.take(10).mkString(", ")
-      val logDirectoryPath = "/Users/divyanshmishra/IntelliJ Projects/BDEProject/Logs"
+      //val logDirectoryPath = "/Users/divyanshmishra/IntelliJ Projects/BDEProject/Logs"
 
       val currentDateTime = LocalDateTime.now()
       val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
       val logFileName = s"log_${currentDateTime.format(formatter)}.txt"
-      val logFilePath = s"$logDirectoryPath/$logFileName"
+      //val logFilePath = s"$logDirectoryPath/$logFileName"
 
       val logString =
         s"""Provenance: ${provenanceDStream.provenance}
@@ -76,9 +76,9 @@ object Provenance {
            |""".stripMargin
 
       // Append the log to the specified file
-      val pw = new PrintWriter(new File(logFilePath), "UTF-8")
-      pw.append(logString + "\n")
-      pw.close()
+      //val pw = new PrintWriter(new File(logFilePath), "UTF-8")
+      //pw.append(logString + "\n")
+      //pw.close()
 
       // Print the log to the console
       println(logString)
