@@ -54,7 +54,6 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
   test("S Word Error") {
 
     val arrayOfStrings: Array[String]  = Array("hello hi super greetings hello")
-    //val arrayOfStrings: String = "hello hi super greetings hello"
 
     val arrayOfRDDs: Array[RDD[String]] = arrayOfStrings.map(str => ssc.sparkContext.parallelize[String](Seq(str)))
     val rddQueue: mutable.Queue[RDD[String]] = mutable.Queue(arrayOfRDDs: _*)
@@ -62,7 +61,6 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     val provenance = "Source: Array of Strings"
     val provenanceInputDStream = ProvenanceReceiverInputDStream(inputDStream, provenance)
     val resultDStream = WordCount.countWords(provenanceInputDStream)
-    print("Dstream toString: " + resultDStream.print())
     var actualOutput = Seq.empty[(String, Int)]
 
     def collectOutput(rdd: RDD[(String, Int)]): Unit = {
@@ -79,31 +77,18 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     resultDStream.foreachRDD(rdd => collectOutput(rdd))
 
     ssc.start()
-    //ssc.awaitTermination()
-    //val timeoutMillis = 15000L
     val timeoutMillis = 5000L
-    val terminated = ssc.awaitTerminationOrTimeout(timeoutMillis)
-    //val dStreamString = resultDStream.print()
-    //print("\n" + dStreamString + "\n")
+    ssc.awaitTerminationOrTimeout(timeoutMillis)
     val expectedOutput = Seq(("hello", 2), ("hi", 1), ("super", 1), ("greetings", 1))
     print("\nExpected Size: " +  expectedOutput.size + "\n")
     print("\nActual Size: " +  actualOutput.size + "\n")
-    Thread.sleep(30)
-    print("\n" +  expectedOutput + "\n")
-    print("\n" + actualOutput + "\n")
+    print("\nExpected WordCount Output" +  expectedOutput + "\n")
+    print("\nActual WordCount Output" + actualOutput + "\n")
 
     assert(expectedOutput.toMap == actualOutput.toMap)
 
   }
-
   // Define the function to assert that the expected and actual outputs are equal
-  def assertOutput(expected: Seq[(String, Int)], actual: Seq[(String, Int)]): Unit = {
-    assert(expected.size == actual.size)
-    expected.zip(actual).foreach { case ((expectedWord, expectedCount), (actualWord, actualCount)) =>
-      assert(expectedWord == actualWord)
-      assert(expectedCount == actualCount)
-    }
-  }
 
 
 }
