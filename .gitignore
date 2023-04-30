@@ -4,4 +4,5 @@ target/
 .bsp/
 .idea/
 checkpoint/
+Logs/
 receivedBlockMetadata/

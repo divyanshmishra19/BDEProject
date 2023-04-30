@@ -61,12 +61,12 @@ object Provenance {
       val timestamp = time.toString
       val inputData = rdd.take(10).mkString(", ")
       val outputData = rdd.take(10).mkString(", ")
-      //val logDirectoryPath = "/Users/divyanshmishra/IntelliJ Projects/BDEProject/Logs"
+      val logDirectoryPath = "./Logs"
 
       val currentDateTime = LocalDateTime.now()
       val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
       val logFileName = s"log_${currentDateTime.format(formatter)}.txt"
-      //val logFilePath = s"$logDirectoryPath/$logFileName"
+      val logFilePath = s"$logDirectoryPath/$logFileName"
 
       val logString =
         s"""Provenance: ${provenanceDStream.provenance}
@@ -75,12 +75,10 @@ object Provenance {
            |Output Data (first 10 elements): $outputData
            |""".stripMargin
 
-      // Append the log to the specified file
-      //val pw = new PrintWriter(new File(logFilePath), "UTF-8")
-      //pw.append(logString + "\n")
-      //pw.close()
+      val pw = new PrintWriter(new File(logFilePath), "UTF-8")
+      pw.append(logString + "\n")
+      pw.close()
 
-      // Print the log to the console
       println(logString)
     }
   }
