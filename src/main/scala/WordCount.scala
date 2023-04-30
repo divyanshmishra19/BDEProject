@@ -38,15 +38,24 @@ object WordCount {
     val lines = ProvenanceReceiverInputDStream(ssc.socketTextStream("localhost", 9999), "Source: SocketTextStream")
     val words = splitOperation(lines)
 
-    val mapFunc = (x: String) => {
-      if(x.substring(0,1).equalsIgnoreCase("s"))
-        (x, 1000)
-      else
-        (x, 1)
+
+    val mapOperation1 = MapOperation[String, (String, Int)]("x => (x, 1)", x => (x, 1))
+    val mapOperation2 = MapOperation[String, (String, Int)]("x => (x, 10)", x => (x, 10))
+
+    var sExists = false
+    words.dStream.foreachRDD { rdd =>
+      rdd.collect.foreach { word =>
+        if (word.startsWith("s")) {
+          sExists = true
+        }
+      }
     }
 
-    val mapOperation = MapOperation[String, (String, Int)]("x => if(x.substring(0,1).equalsIgnoreCase(\"s\")) (x, 1000) else (x, 1)", mapFunc)
-    val wordDstream = mapOperation(words)
+    val wordDstream = if (sExists) {
+                        mapOperation2(words)
+                      } else {
+                        mapOperation1(words)
+                      }
 
     val updateFunc = (values: Seq[Int], state: Option[Int]) => {
       val currentCount = values.foldLeft(0)(_ + _)
@@ -60,10 +69,7 @@ object WordCount {
     val updateStateByKeyOperation = UpdateStateByKeyOperation[String, Int, Int]("word count update", updateFunc)
     val stateDstream = updateStateByKeyOperation(wordDstream)
     // Log provenance information for both operations
-    logProvenance(words)
-    logProvenance(wordDstream)
     logProvenance(stateDstream)
-
 
     // Update the cumulative count using updateStateByKey
     // This will give a Dstream made of state (which is the cumulative count of the words)
