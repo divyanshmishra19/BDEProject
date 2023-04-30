@@ -59,8 +59,48 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
     val inputDStream: DStream[String] = ssc.queueStream(rddQueue)
     val provenance = "Source: Array of Strings"
     val provenanceInputDStream = ProvenanceReceiverInputDStream(inputDStream, provenance)
-    print(WordCount.countWords(provenanceInputDStream).print())
+    val resultDStream = WordCount.countWords(provenanceInputDStream)
+    print("Dstream toString: " + resultDStream.print())
+    var actualOutput = Seq.empty[(String, Int)]
+
+    def collectOutput(rdd: RDD[(String, Int)]): Unit = {
+      rdd.collect().foreach { case (word, count) =>
+        val index = actualOutput.indexWhere(_._1 == word)
+        if (index >= 0) {
+          val (existingWord, existingCount) = actualOutput(index)
+          actualOutput = actualOutput.updated(index, (existingWord, existingCount + count))
+        } else {
+          actualOutput = actualOutput :+ (word, count)
+        }
+      }
+    }
+    resultDStream.foreachRDD(rdd => collectOutput(rdd))
+
     ssc.start()
-    ssc.awaitTermination()
+    //ssc.awaitTermination()
+    val timeoutMillis = 15000L
+    val terminated = ssc.awaitTerminationOrTimeout(timeoutMillis)
+    //val dStreamString = resultDStream.print()
+    //print("\n" + dStreamString + "\n")
+    val expectedOutput = Seq(("hello", 2), ("hi", 1), ("super", 1), ("greetings", 1))
+    print("\nExpected Size: " +  expectedOutput.size + "\n")
+    print("\nActual Size: " +  actualOutput.size + "\n")
+    Thread.sleep(30)
+    print("\n" +  expectedOutput + "\n")
+    print("\n" + actualOutput + "\n")
+
+    assertOutput(expectedOutput, actualOutput)
+
   }
+
+  // Define the function to assert that the expected and actual outputs are equal
+  def assertOutput(expected: Seq[(String, Int)], actual: Seq[(String, Int)]): Unit = {
+    assert(expected.size == actual.size)
+    expected.zip(actual).foreach { case ((expectedWord, expectedCount), (actualWord, actualCount)) =>
+      assert(expectedWord == actualWord)
+      assert(expectedCount == actualCount)
+    }
+  }
+
+
 }
