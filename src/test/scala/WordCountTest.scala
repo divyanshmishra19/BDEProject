@@ -8,12 +8,18 @@
  */
 
 import org.apache.spark.SparkConf
+import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.{Seconds, State, StateSpec, StreamingContext}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funsuite.AnyFunSuite
+import org.apache.spark.streaming._
+import org.apache.spark._
+import org.apache.spark.streaming.dstream._
+import provenance.util.ProvenanceReceiverInputDStream
 
 import java.io.PrintWriter
 import java.net.ServerSocket
+import scala.collection.mutable
 
 
 class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
@@ -31,6 +37,7 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
   //source: https://www.scalatest.org/user_guide/sharing_fixtures
   override def beforeEach(): Unit = {
     ssc = new StreamingContext(sparkConf, interval)
+    ssc.checkpoint("checkpoint")
     super.beforeEach()
   }
 
@@ -42,36 +49,15 @@ class WordCountTest extends AnyFunSuite with BeforeAndAfterEach {
 
   test("WordCount.scala") {
 
-    val words = Seq("Violet Harris", "this is a test", "count the number of words", "lol")
+    val arrayOfStrings: Array[String]  = Array("hello", "hi", "super", "greetings", "hello")
 
-
-    //lines.flatMap(_.split(" ")).map(word => (word, 1)).reduceByKey(_ + _).print()
-    val server = new Thread {
-      override def run(): Unit = {
-        val lstnr = new ServerSocket(9998)
-        val sckt = lstnr.accept()
-        val out = new PrintWriter(sckt.getOutputStream(), true)
-        words.foreach(data => out.write(data + "\n"))
-        lstnr.close()
-        out.close()
-        sckt.close()
-      }
-    }
-    server.start()
-
-    val lines = ssc.socketTextStream("localhost", 9998)
-
-    val socket = new ServerSocket(9997)
-    println("Hello")
-    //val printer = new PrintWriter(socket.accept().getOutputStream(), true)
-
-    WordCount.main(Array.empty[String])
-
-    println("Violet Harris")
-    println("this is a test")
-
-    Thread.sleep(100)
-
-    val output = ssc.sparkContext.parallelize(Seq(("hello", 1), ("world", 1), ("foo", 1), ("bar", 1), ("baz", 1), ("qux", 1)))
+    val arrayOfRDDs: Array[RDD[String]] = arrayOfStrings.map(str => ssc.sparkContext.parallelize[String](Seq(str)))
+    val rddQueue: mutable.Queue[RDD[String]] = mutable.Queue(arrayOfRDDs: _*)
+    val inputDStream: DStream[String] = ssc.queueStream(rddQueue)
+    val provenance = "Source: Array of Strings"
+    val provenanceInputDStream = ProvenanceReceiverInputDStream(inputDStream, provenance)
+    print(WordCount.countWords(provenanceInputDStream).print())
+    ssc.start()
+    ssc.awaitTermination()
   }
 }

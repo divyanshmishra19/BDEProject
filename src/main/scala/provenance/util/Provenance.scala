@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.ClassTag
 
-case class ProvenanceReceiverInputDStream[T](inputDStream: ReceiverInputDStream[T], provenance: String)
+case class ProvenanceReceiverInputDStream[T](inputDStream: DStream[T], provenance: String)
 case class ProvenanceDStream[T](dStream: DStream[T], provenance: String, lineNumber: Int)
 
 case class SplitOperation(provenance: String, splitFunc: String => TraversableOnce[String]) {
